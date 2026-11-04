@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import openai
 import os
@@ -6,6 +7,7 @@ import json
 import subprocess
 import tempfile
 import traceback
+import shutil
 
 app = FastAPI()
 
@@ -16,6 +18,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    error_trace = traceback.format_exc()
+    print("GLOBAL EXCEPTION:", error_trace)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "trace": error_trace},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*"
+        }
+    )
 
 def seconds_to_srt_time(seconds: float) -> str:
     hours = int(seconds // 3600)
@@ -37,7 +53,6 @@ async def analyze_video(file: UploadFile = File(...)):
 
         client = openai.OpenAI(api_key=api_key)
 
-        # Save uploaded file (whether .mov, .mp4, etc.)
         contents = await file.read()
         if len(contents) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
@@ -45,80 +60,67 @@ async def analyze_video(file: UploadFile = File(...)):
         with open(input_path, "wb") as f:
             f.write(contents)
 
-        # 1. Automatically convert Apple .mov or any format to standard H.264/AAC MP4 using FFmpeg
-        try:
-            conversion_cmd = [
-                "ffmpeg", "-i", input_path,
-                "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28",
-                "-c:a", "aac", "-b:a", "128k",
-                normalized_mp4_path, "-y"
-            ]
-            subprocess.run(conversion_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except subprocess.CalledProcessError as sub_err:
-            raise HTTPException(status_code=500, detail=f"FFmpeg Conversion Error: {sub_err.stderr.decode('utf-8')[-300:]}")
+        # Normalize video/MOV via FFmpeg
+        conversion_cmd = [
+            "ffmpeg", "-i", input_path,
+            "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28",
+            "-c:a", "aac", "-b:a", "128k",
+            normalized_mp4_path, "-y"
+        ]
+        subprocess.run(conversion_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # 2. Transcribe via OpenAI Whisper using the standardized MP4/audio track
+        # Transcribe once via Whisper
         with open(normalized_mp4_path, "rb") as audio_file:
-            try:
-                transcript_response = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio_file,
-                    response_format="verbose_json"
-                )
-            except Exception as openai_err:
-                raise HTTPException(status_code=500, detail=f"OpenAI Whisper Error: {str(openai_err)}")
+            transcript_response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="verbose_json"
+            )
 
         transcript_text = getattr(transcript_response, "text", "")
+        segments = getattr(transcript_response, "segments", [])
+
         if not transcript_text or not transcript_text.strip():
-            raise HTTPException(status_code=400, detail="Transcription came back empty. Ensure your video has clear speech audio.")
+            raise HTTPException(status_code=400, detail="Transcription came back empty.")
 
-        # 3. GPT-4o Prompt for High-Virality Clips
         prompt = f"""
-        You are an expert social media growth hacker. Analyze this full video transcript and identify the 3 HIGHEST VIRALITY moments (hooks, surprising statements, or core breakthroughs).
-
+        You are an expert social media growth hacker. Analyze this full video transcript and identify the 3 HIGHEST VIRALITY moments.
         Transcript: "{transcript_text}"
-
         CRITICAL RULES:
-        1. Each identified clip MUST have a duration between 15 and 30 seconds (15 <= (end - start) <= 30).
-        2. Provide exact "start" and "end" timestamps in seconds based on the transcript timeline.
-
-        Return a valid JSON object with a key "clips" containing an array of exactly 3 objects with these exact fields:
-        - "title": Short viral title for the hook
+        1. Each identified clip MUST have a duration between 15 and 30 seconds.
+        2. Provide exact "start" and "end" timestamps in seconds.
+        Return a valid JSON object with a key "clips" containing an array of exactly 3 objects:
+        - "title": Short viral title
         - "duration": String duration (e.g., "24s")
         - "score": Virality score percentage (e.g., "97% Virality")
         - "start": start time in seconds (number)
         - "end": end time in seconds (number)
-        - "caption": Engaging social media caption / hook matching this specific high-virality window
-        - "hashtags": An object with keys "broad", "niche", and "growth" containing tailored hashtags
-        - "subtitles": An array of objects with "time" (seconds number relative to clip start) and "text" (short subtitle phrase)
+        - "caption": Engaging social media caption
+        - "hashtags": An object with keys "broad", "niche", and "growth"
         """
 
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
-            )
-        except Exception as gpt_err:
-            raise HTTPException(status_code=500, detail=f"OpenAI GPT-4o Error: {str(gpt_err)}")
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
 
         parsed_data = json.loads(response.choices[0].message.content)
+        parsed_data["segments"] = segments  # Pass segments so export doesn't re-run Whisper!
         return parsed_data
 
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        error_detail = traceback.format_exc()
-        print("CRITICAL BACKEND ERROR:\n", error_detail)
-        raise HTTPException(status_code=500, detail=f"Server Exception: {str(e)}")
     finally:
         if os.path.exists(temp_dir):
-            import shutil
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @app.post("/export-clip")
-async def export_clip(file: UploadFile = File(...), start: float = 0.0, end: float = 30.0):
+async def export_clip(
+    file: UploadFile = File(...), 
+    start: float = Form(0.0), 
+    end: float = Form(30.0),
+    segments_json: str = Form("[]")
+):
     temp_dir = tempfile.mkdtemp()
     input_path = os.path.join(temp_dir, file.filename)
     normalized_path = os.path.join(temp_dir, "normalized.mp4")
@@ -130,7 +132,6 @@ async def export_clip(file: UploadFile = File(...), start: float = 0.0, end: flo
         with open(input_path, "wb") as f:
             f.write(contents)
 
-        # Normalize Apple MOV / input video first
         conversion_cmd = [
             "ffmpeg", "-i", input_path,
             "-c:v", "libx264", "-preset", "ultrafast", "-crf", "28",
@@ -139,17 +140,11 @@ async def export_clip(file: UploadFile = File(...), start: float = 0.0, end: flo
         ]
         subprocess.run(conversion_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        api_key = os.getenv("OPENAI_API_KEY")
-        client = openai.OpenAI(api_key=api_key)
+        try:
+            segments = json.loads(segments_json)
+        except:
+            segments = []
 
-        with open(normalized_path, "rb") as audio_file:
-            transcript_response = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-                response_format="verbose_json"
-            )
-
-        segments = getattr(transcript_response, "segments", [])
         srt_content = ""
         for idx, seg in enumerate(segments, start=1):
             seg_start = seg.get("start", 0)
@@ -165,25 +160,29 @@ async def export_clip(file: UploadFile = File(...), start: float = 0.0, end: flo
 
         duration = max(5.0, min(30.0, end - start))
 
-        # FFmpeg: Trim normalized video, crop to 9:16 vertical, burn open captions
         ffmpeg_cmd = [
             "ffmpeg", "-ss", str(start), "-i", normalized_path, "-t", str(duration),
             "-vf", f"scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,subtitles={srt_path}:force_style='FontSize=24,PrimaryColour=&H00FFFF&,OutlineColour=&H000000&,BorderStyle=3'",
             "-c:v", "libx264", "-crf", "23", "-c:a", "aac", output_path, "-y"
         ]
-
         subprocess.run(ffmpeg_cmd, check=True)
 
         with open(output_path, "rb") as f:
             video_bytes = f.read()
 
-        return {"status": "success", "clip_duration": duration, "size": len(video_bytes)}
+        return JSONResponse(
+            content={"status": "success", "clip_duration": duration, "size": len(video_bytes)},
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
 
     except Exception as e:
         error_detail = traceback.format_exc()
         print("EXPORT ERROR:\n", error_detail)
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e), "trace": error_detail},
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
     finally:
         if os.path.exists(temp_dir):
-            import shutil
             shutil.rmtree(temp_dir, ignore_errors=True)
