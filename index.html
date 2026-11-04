@@ -191,10 +191,17 @@
           body: formData
         });
 
-        if (!response.ok) throw new Error("Backend analysis failed");
-
         const data = await response.json();
-        detectedClips = data.clips || data;
+
+        // Safely catch errors returned by the backend instead of crashing on .map()
+        if (!response.ok || data.error) {
+          throw new Error(data.error || data.detail || "Backend analysis failed");
+        }
+
+        detectedClips = data.clips || [];
+        if (!Array.isArray(detectedClips) || detectedClips.length === 0) {
+          throw new Error("AI did not return any valid clips. Try a different video.");
+        }
 
         renderClipOptions();
         await selectClip(0);
@@ -203,7 +210,7 @@
         workspace.classList.remove('hidden');
         lucide.createIcons();
       } catch (err) {
-        statusText.innerText = "Error connecting to Render backend. Check BACKEND_URL & API keys.";
+        statusText.innerText = `Error: ${err.message}`;
         console.error(err);
       }
     }
@@ -235,7 +242,6 @@
       document.getElementById('aiCaptionText').value = clip.caption;
       updateHashtags();
 
-      // Call backend export-clip route to physically trim the video and burn subtitles
       const statusText = document.getElementById('statusText');
       const clipperStatus = document.getElementById('clipperStatus');
       clipperStatus.classList.remove('hidden');
