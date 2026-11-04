@@ -1,15 +1,11 @@
-import os
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
-from supabase import create_client, Client
-from dotenv import load_dotenv
+import openai
+import os
 
-load_dotenv()
+app = FastAPI()
 
-app = FastAPI(title="learnwtf Backend")
-
-# Enable CORS for frontend communication (Vercel / Localhost)
+# Enable CORS for your Vercel frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,68 +14,63 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Supabase & OpenAI
-SUPABASE_URL = os.getenv("https://sryjtwofoxyuscntjrbt.supabase.co")
-SUPABASE_KEY = os.getenv("sb_publishable_E8_wuBS8vHmlEoG8fxXhHA_kfAkHIuI")
-OPENAI_API_KEY = os.getenv("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")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
-
-@app.get("/")
-def health_check():
-    return {"status": "online", "system": "learnwtf backend active"}
-
-@app.post("/api/upload-and-rename")
-async def upload_and_rename(file: UploadFile = File(...)):
+@app.post("/analyze-video")
+async def analyze_video(file: UploadFile = File(...)):
+    """
+    Transcribes uploaded video audio via OpenAI Whisper, identifies top 15-30s viral clips,
+    and returns matching captions, hooks, and hashtags based on actual video transcript.
+    """
     try:
-        # 1. Read file bytes
-        file_bytes = await file.read()
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not configured on Render environment variables.")
+
+        client = openai.OpenAI(api_key=api_key)
+
+        # Save temporary video file for Whisper processing
+        temp_path = f"temp_{file.filename}"
+        with open(temp_path, "wb") as buffer:
+            buffer.write(await file.read())
+
+        # 1. Transcribe actual audio via OpenAI Whisper with timestamp segments
+        with open(temp_path, "rb") as audio_file:
+            transcript_response = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file,
+                response_format="verbose_json",
+                timestamp_granularities=["segment"]
+            )
+
+        # Clean up temp file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+        transcript_text = getattr(transcript_response, "text", str(transcript_response))
+
+        # 2. Prompt GPT-4o to analyze transcript & return JSON with 3 distinct 15-30s clip options
+        prompt = f"""
+        Analyze this video transcript and return valid JSON containing 3 distinct 15-30 second viral clip segments.
         
-        # 2. Use OpenAI to generate a clean title
-        prompt = f"Given the filename '{file.filename}', generate a concise, professional, snake_case or clean title for a knowledge management system (max 5 words, no extension, no quotes)."
-        response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}]
+        Transcript: "{transcript_text}"
+
+        Return a JSON object with a key "clips" containing an array of 3 objects with these exact fields:
+        - "title": Short descriptive title (e.g., "Option A: The Core Strategy")
+        - "duration": String duration (e.g., "24s")
+        - "score": Virality score percentage (e.g., "96% Virality")
+        - "start": start time in seconds (number)
+        - "end": end time in seconds (number)
+        - "caption": Engaging social media caption matching the exact topic discussed in this segment
+        - "hashtags": An object with keys "broad", "niche", and "growth" containing tailored hashtag strings
+        - "subtitles": An array of objects with "time" (seconds number) and "text" (short subtitle phrase for video overlay)
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
         )
-        auto_title = response.choices[0].message.content.strip().replace('"', '')
 
-        # 3. Upload file to Supabase Storage bucket ('documents')
-        storage_path = f"{auto_title}_{file.filename}"
-        supabase.storage.from_('documents').upload(
-            storage_path, 
-            file_bytes, 
-            file_options={"content-type": file.content_type, "upsert": "true"}
-        )
-        
-        # 4. Get public URL
-        public_url_resp = supabase.storage.from_('documents').get_public_url(storage_path)
+        return response.choices[0].message.content
 
-        # 5. Save record to 'knowledge_files' table
-        db_record = {
-            "original_name": file.filename,
-            "auto_renamed_title": auto_title,
-            "file_url": public_url_resp,
-            "file_type": "document",
-            "access_tier": "private"
-        }
-        supabase.table("knowledge_files").insert(db_record).execute()
-
-        return {"status": "success", "auto_renamed_title": auto_title, "file_url": public_url_resp}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/rag-chat")
-async def rag_chat(query: str):
-    try:
-        response = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are learnwtf AI, an analytical assistant grounded strictly in the user's uploaded knowledge ecosystem."},
-                {"role": "user", "content": query}
-            ]
-        )
-        return {"response": response.choices[0].message.content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
