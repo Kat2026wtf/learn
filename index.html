@@ -29,7 +29,7 @@
       <div class="w-8 h-8 rounded-lg bg-crimsonred border border-gold flex items-center justify-center font-bold text-gold shadow-[0_0_10px_rgba(220,20,60,0.5)]">L</div>
       <h1 class="text-base font-bold text-white tracking-wide">learn<span class="text-crimsonred">wtf</span></h1>
     </div>
-    <div class="text-xs text-gray-400">System Status: <span class="text-gold font-semibold">Online (High-Virality Clipper)</span></div>
+    <div class="text-xs text-gray-400">System Status: <span class="text-gold font-semibold">Online (Direct Download Mode)</span></div>
   </header>
 
   <div class="flex flex-1">
@@ -48,7 +48,7 @@
       </button>
     </aside>
 
-    <main class="flex-1 p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+    <main class="flex-1 p-6 md:p-8 max-w-4xl mx-auto space-y-6">
 
       <section id="content-knowledge" class="space-y-6 hidden">
         <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4 shadow-xl">
@@ -65,8 +65,8 @@
       <section id="content-social" class="space-y-6">
         <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4 shadow-xl">
           <div>
-            <h2 class="text-lg font-bold text-white mb-1">AI Video Clipper & Multi-Platform Publisher</h2>
-            <p class="text-xs text-gray-400">Upload long-form video (supports Apple .mov & MP4) to extract high-virality 15-30s segments with burned captions.</p>
+            <h2 class="text-lg font-bold text-white mb-1">AI Video Clipper & Direct Downloader</h2>
+            <p class="text-xs text-gray-400">Upload long-form video (MOV/MP4) to extract top 3 high-virality 15-30s clips with burned-in subtitles.</p>
           </div>
 
           <div class="border-2 border-dashed border-[#22222A] hover:border-crimsonred p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('clipFileInput').click()">
@@ -78,56 +78,31 @@
 
           <div id="clipperStatus" class="hidden p-3 bg-[#1A1A22] border border-[#22222A] rounded-lg text-xs text-gold flex items-center space-x-2">
             <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-            <span id="statusText">Extracting audio & transcribing via Whisper...</span>
+            <span id="statusText">Analyzing video transcripts & detecting viral segments...</span>
           </div>
 
           <div id="socialWorkspace" class="hidden space-y-6 pt-4 border-t border-[#22222A]">
             <div>
-              <h3 class="text-xs font-bold text-gold uppercase tracking-wider mb-2">Step 1: Choose High-Virality Segment (15-30s)</h3>
+              <h3 class="text-xs font-bold text-gold uppercase tracking-wider mb-2">Click Any Card Below to Instantly Download Snipped MP4</h3>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="clipOptionsContainer"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              <div class="bg-[#0A0A0C] border border-[#22222A] p-4 rounded-xl flex flex-col items-center justify-center">
-                <p class="text-[10px] text-gray-400 mb-2 uppercase font-bold tracking-wider">Snipped 9:16 Vertical Preview</p>
-                <div class="relative w-[216px] h-[384px] bg-black rounded-lg overflow-hidden border-2 border-gold flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                  <video id="socialPreviewVideo" controls playsinline class="w-full h-full object-cover"></video>
+            <div class="bg-[#1A1A22] p-4 rounded-xl border border-[#22222A] space-y-4">
+              <h3 class="text-xs font-bold text-gold uppercase tracking-wider">Selected Clip Copy & Metadata</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-[10px] text-gray-400 block mb-1">AI Generated Hook & Caption</label>
+                  <textarea id="aiCaptionText" rows="3" class="w-full bg-[#0A0A0C] border border-[#22222A] p-2 text-xs text-white rounded focus:border-crimsonred outline-none resize-none"></textarea>
                 </div>
-              </div>
-
-              <div class="bg-[#1A1A22] p-4 rounded-xl border border-[#22222A] space-y-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                  <h3 class="text-xs font-bold text-gold uppercase tracking-wider">Step 2: Review Content-Matched Copy</h3>
-                  
-                  <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Target Platform Preset</label>
-                    <select id="platformSelect" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-white rounded focus:border-crimsonred outline-none">
-                      <option value="tiktok">TikTok (9:16 Vertical)</option>
-                      <option value="reels">Instagram Reels (9:16 Vertical)</option>
-                      <option value="shorts">YouTube Shorts (9:16 Vertical)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">AI Generated Hook & Caption</label>
-                    <textarea id="aiCaptionText" rows="3" class="w-full bg-[#0A0A0C] border border-[#22222A] p-2 text-xs text-white rounded focus:border-crimsonred outline-none resize-none"></textarea>
-                  </div>
-
-                  <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Hashtags</label>
-                    <select id="hashtagPackageSelect" onchange="updateHashtags()" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-gold rounded focus:border-crimsonred outline-none mb-1">
-                      <option value="broad">Broad / High Reach</option>
-                      <option value="niche">Niche / Industry</option>
-                      <option value="growth">Growth & Business</option>
-                    </select>
-                    <input type="text" id="aiHashtags" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-gold rounded focus:border-crimsonred outline-none">
-                  </div>
+                <div>
+                  <label class="text-[10px] text-gray-400 block mb-1">Hashtags</label>
+                  <select id="hashtagPackageSelect" onchange="updateHashtags()" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-gold rounded focus:border-crimsonred outline-none mb-1">
+                    <option value="broad">Broad / High Reach</option>
+                    <option value="niche">Niche / Industry</option>
+                    <option value="growth">Growth & Business</option>
+                  </select>
+                  <input type="text" id="aiHashtags" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-gold rounded focus:border-crimsonred outline-none">
                 </div>
-
-                <button onclick="downloadSnippedClip()" id="exportBtn" class="w-full bg-crimsonred text-white font-bold py-2.5 rounded text-xs hover:bg-red-700 transition flex items-center justify-center space-x-2 shadow-[0_0_10px_rgba(220,20,60,0.5)]">
-                  <i data-lucide="download" class="w-4 h-4 text-gold"></i>
-                  <span>Download Snipped & Burned MP4</span>
-                </button>
               </div>
             </div>
           </div>
@@ -140,7 +115,7 @@
           <ul class="space-y-2 text-xs">
             <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
               <input type="checkbox" checked class="accent-crimsonred">
-              <span>FastAPI backend optimized for fast audio extraction & subtitle burn-in</span>
+              <span>FastAPI backend configured for direct MP4 download workflow</span>
             </li>
           </ul>
         </div>
@@ -156,7 +131,6 @@
     let detectedClips = [];
     let rawSegments = [];
     let selectedClipIndex = 0;
-    let currentSnippedBlobUrl = null;
 
     function switchTab(tabName) {
       document.getElementById('content-knowledge').classList.add('hidden');
@@ -181,7 +155,7 @@
       const workspace = document.getElementById('socialWorkspace');
 
       statusBox.classList.remove('hidden');
-      statusText.innerText = "Step 1/2: Extracting audio & finding viral peaks via Whisper & GPT-4o...";
+      statusText.innerText = "Extracting audio & analyzing viral peaks via Whisper & GPT-4o...";
 
       const formData = new FormData();
       formData.append("file", file);
@@ -206,7 +180,9 @@
         }
 
         renderClipOptions();
-        await selectClip(0);
+        selectedClipIndex = 0;
+        document.getElementById('aiCaptionText').value = detectedClips[0].caption;
+        updateHashtags();
 
         statusBox.classList.add('hidden');
         workspace.classList.remove('hidden');
@@ -220,34 +196,31 @@
     function renderClipOptions() {
       const container = document.getElementById('clipOptionsContainer');
       container.innerHTML = detectedClips.map((clip, index) => `
-        <div onclick="selectClip(${index})" id="clipCard-${index}" class="cursor-pointer bg-[#1A1A22] border-2 ${index === 0 ? 'border-gold shadow-[0_0_10px_rgba(212,175,55,0.3)]' : 'border-[#22222A]'} p-3 rounded-xl transition hover:border-gold space-y-1">
+        <div onclick="downloadClip(${index})" class="cursor-pointer bg-[#1A1A22] border-2 border-[#22222A] p-4 rounded-xl transition hover:border-gold hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] space-y-2 group">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-white">${clip.title}</span>
+            <span class="text-xs font-bold text-white group-hover:text-gold">${clip.title}</span>
             <span class="text-[10px] bg-crimsonred/20 text-crimsonred px-1.5 py-0.5 rounded font-bold">${clip.score}</span>
           </div>
-          <div class="text-[10px] text-gray-400">Duration: <span class="text-gold font-semibold">${clip.duration}</span> (${Math.round(clip.end - clip.start)}s)</div>
+          <div class="text-[10px] text-gray-400">Duration: <span class="text-gold font-semibold">${clip.duration}</span></div>
+          <div class="pt-2 flex items-center justify-between text-[11px] text-gold font-bold">
+            <span>Download Clip MP4</span>
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          </div>
         </div>
       `).join('');
+      lucide.createIcons();
     }
 
-    async function selectClip(index) {
+    async function downloadClip(index) {
       selectedClipIndex = index;
       const clip = detectedClips[index];
-
-      detectedClips.forEach((_, i) => {
-        const card = document.getElementById(`clipCard-${i}`);
-        if (card) {
-          card.className = `cursor-pointer bg-[#1A1A22] border-2 ${i === index ? 'border-gold shadow-[0_0_10px_rgba(212,175,55,0.3)]' : 'border-[#22222A]'} p-3 rounded-xl transition hover:border-gold space-y-1`;
-        }
-      });
-
       document.getElementById('aiCaptionText').value = clip.caption;
       updateHashtags();
 
+      const statusBox = document.getElementById('clipperStatus');
       const statusText = document.getElementById('statusText');
-      const clipperStatus = document.getElementById('clipperStatus');
-      clipperStatus.classList.remove('hidden');
-      statusText.innerText = `Step 2/2: Snipping 9:16 segment & burning subtitles via FFmpeg...`;
+      statusBox.classList.remove('hidden');
+      statusText.innerText = `Snipping "${clip.title}" & burning subtitles... Please wait.`;
 
       const formData = new FormData();
       formData.append("file", rawVideoFile);
@@ -267,24 +240,18 @@
         }
 
         const blob = await response.blob();
-        const videoBlob = new Blob([blob], { type: 'video/mp4' });
-        
-        if (currentSnippedBlobUrl) {
-          URL.revokeObjectURL(currentSnippedBlobUrl);
-        }
-        currentSnippedBlobUrl = URL.createObjectURL(videoBlob);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `viral_clip_${index + 1}_${Date.now()}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-        const videoElement = document.getElementById('socialPreviewVideo');
-        videoElement.pause();
-        videoElement.src = currentSnippedBlobUrl;
-        videoElement.load();
-        
-        // Attempt autoplay preview playback
-        videoElement.play().catch(() => console.log("Autoplay paused by browser policy. Click play to listen."));
-
-        clipperStatus.classList.add('hidden');
+        statusBox.classList.add('hidden');
       } catch (err) {
-        console.error("Snipping error:", err);
+        console.error("Download error:", err);
         statusText.innerText = `Error: ${err.message}`;
       }
     }
@@ -295,20 +262,6 @@
       if (clip && clip.hashtags && clip.hashtags[pkg]) {
         document.getElementById('aiHashtags').value = clip.hashtags[pkg];
       }
-    }
-
-    function downloadSnippedClip() {
-      if (!currentSnippedBlobUrl) {
-        alert("Please wait for clip preview to finish processing before downloading.");
-        return;
-      }
-      const platform = document.getElementById('platformSelect').value;
-      const a = document.createElement('a');
-      a.href = currentSnippedBlobUrl;
-      a.download = `${platform}_viral_clip_${Date.now()}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
     }
 
     async function handleFileUpload(event) {
