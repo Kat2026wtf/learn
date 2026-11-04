@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>learnwtf - Creator & Knowledge Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #0A0A0C; color: #E2E8F0; font-family: system-ui, sans-serif; }
+    .text-gold { color: #D4AF37; }
+    .bg-gold { background-color: #D4AF37; }
+    .border-gold { border-color: #D4AF37; }
+    .bg-crimson { background-color: #E50914; }
+    .tab-active { border-bottom: 2px solid #D4AF37; color: #D4AF37; background: rgba(212,175,55,0.05); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-[#22222A] bg-[#121216] px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center text-black font-black text-xl">wtf</div>
+      <h1 class="text-xl font-bold text-white">learn<span class="text-gold">wtf</span></h1>
+    </div>
+    <span class="text-xs text-gray-400 bg-[#1A1A22] px-3 py-1.5 rounded-full border border-[#22222A]">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Ecosystem Active
+    </span>
+  </header>
+
+  <!-- Nav Tabs -->
+  <nav class="bg-[#121216] border-b border-[#22222A] px-6 flex space-x-8 text-sm font-medium overflow-x-auto">
+    <button onclick="switchTab('knowledge')" id="tab-knowledge" class="py-4 tab-active">1. Knowledge & RAG</button>
+    <button onclick="switchTab('social')" id="tab-social" class="py-4 text-gray-400">2. Social Studio & Clips</button>
+    <button onclick="switchTab('trends')" id="tab-trends" class="py-4 text-gray-400">3. Trends & Analytics</button>
+    <button onclick="switchTab('tasks')" id="tab-tasks" class="py-4 text-gray-400">4. Task Master</button>
+  </nav>
+
+  <!-- Workspace -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+
+    <!-- TAB 1: KNOWLEDGE & UPLOAD HUB -->
+    <section id="content-knowledge" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Upload Panel -->
+      <div class="bg-[#121216] border border-[#22222A] p-5 rounded-xl space-y-4">
+        <h2 class="text-base font-bold text-white">Device Upload Hub</h2>
+        
+        <div class="border-2 border-dashed border-[#22222A] hover:border-gold p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+          <i data-lucide="upload-cloud" class="w-8 h-8 text-gold mx-auto mb-2"></i>
+          <p class="text-xs font-semibold text-white">Upload from Laptop or Phone</p>
+          <p class="text-[10px] text-gray-400 mt-1">Auto-renamed via OpenAI on upload</p>
+          <input type="file" id="fileInput" class="hidden" onchange="uploadFile(event)">
+        </div>
+
+        <h3 class="text-xs font-bold text-gold uppercase mt-4">Synced Knowledge Items</h3>
+        <div id="fileList" class="space-y-2 max-h-60 overflow-y-auto">
+          <p class="text-xs text-gray-500 italic">Loading files...</p>
+        </div>
+      </div>
+
+      <!-- AI RAG Chatbot -->
+      <div class="lg:col-span-2 bg-[#121216] border border-[#22222A] rounded-xl flex flex-col h-[550px]">
+        <div class="p-4 border-b border-[#22222A] bg-[#16161E] text-xs font-bold text-gold flex justify-between items-center">
+          <span>Grounded AI Knowledge Assistant</span>
+          <span class="text-[10px] text-gray-400">FastAPI + OpenAI + Supabase</span>
+        </div>
+        <div id="chat-box" class="flex-1 p-4 overflow-y-auto text-sm space-y-3">
+          <div class="bg-[#1A1A22] p-3 rounded max-w-md text-gray-300 border border-[#22222A]">
+            Hello! Upload documents or ask questions about your synced knowledge files.
+          </div>
+        </div>
+        <div class="p-4 border-t border-[#22222A] flex space-x-2">
+          <input type="text" id="chatInput" placeholder="Query your files..." class="flex-1 bg-[#0A0A0C] border border-[#22222A] px-4 py-2 text-sm text-white rounded focus:border-gold outline-none" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+          <button onclick="sendChatMessage()" class="bg-gold text-black font-bold px-4 py-2 rounded text-sm hover:bg-amber-400 transition">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SOCIAL STUDIO -->
+    <section id="content-social" class="hidden space-y-4">
+      <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl">
+        <h2 class="text-lg font-bold text-white mb-2">Social Studio & Content Pipeline</h2>
+        <p class="text-xs text-gray-400">Manage your vertical video assets, captions, and tags locally or push them out directly from your devices.</p>
+      </div>
+    </section>
+
+    <!-- TAB 3: TRENDS -->
+    <section id="content-trends" class="hidden">
+      <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-3">
+        <h2 class="text-lg font-bold text-white">Market & Industry Trends</h2>
+        <p class="text-xs text-gray-400">Track high-priority industry insights and financial data.</p>
+      </div>
+    </section>
+
+    <!-- TAB 4: TASKS -->
+    <section id="content-tasks" class="hidden">
+      <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-3">
+        <h2 class="text-lg font-bold text-white">Task Master</h2>
+        <div class="bg-[#1A1A22] p-3.5 rounded border border-[#22222A] flex justify-between items-center text-xs">
+          <div>
+            <p class="font-bold text-white">Review Knowledge Base Updates</p>
+            <p class="text-gray-400">Daily Recurring • High Priority</p>
+          </div>
+          <span class="bg-red-950 text-red-400 px-2.5 py-1 rounded">Active</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // REPLACE WITH YOUR ACTUAL SUPABASE URL AND ANON KEY
+    const SUPABASE_URL = "https://sryjtwofoxyuscntjrbt.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+    const BACKEND_URL = "https://YOUR-RENDER-BACKEND-URL.onrender.com"; // Replace with your Render URL once deployed
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function switchTab(tabId) {
+      ['knowledge', 'social', 'trends', 'tasks'].forEach(id => {
+        document.getElementById('content-' + id).classList.add('hidden');
+        document.getElementById('tab-' + id).classList.remove('tab-active');
+        document.getElementById('tab-' + id).classList.add('text-gray-400');
+      });
+      document.getElementById('content-' + tabId).classList.remove('hidden');
+      document.getElementById('tab-' + tabId).classList.add('tab-active');
+      document.getElementById('tab-' + tabId).classList.remove('text-gray-400');
+    }
+
+    async function uploadFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/upload-and-rename`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        alert(`Success! File auto-renamed to: ${data.auto_renamed_title}`);
+        loadFiles();
+      } catch (err) {
+        alert("Upload failed. Make sure your FastAPI backend URL is correct.");
+      }
+    }
+
+    async function loadFiles() {
+      const { data, error } = await supabaseClient.from('knowledge_files').select('*').order('created_at', { ascending: false });
+      const fileList = document.getElementById('fileList');
+      if (!data || data.length === 0) {
+        fileList.innerHTML = '<p class="text-xs text-gray-500 italic">No files uploaded yet.</p>';
+        return;
+      }
+
+      fileList.innerHTML = data.map(f => `
+        <a href="${f.file_url}" target="_blank" class="block bg-[#1A1A22] hover:border-gold p-2.5 rounded border border-[#22222A] text-xs transition">
+          <p class="text-gray-200 font-semibold truncate">${f.auto_renamed_title}</p>
+          <p class="text-[10px] text-gray-500 truncate mt-0.5">Original: ${f.original_name}</p>
+        </a>
+      `).join('');
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const chatBox = document.getElementById('chat-box');
+      const query = input.value.trim();
+      if (!query) return;
+
+      chatBox.innerHTML += `<div class="bg-[#121216] p-3 rounded max-w-md ml-auto text-white border border-[#22222A] text-right">${query}</div>`;
+      input.value = '';
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/rag-chat?query=${encodeURIComponent(query)}`, { method: 'POST' });
+        const data = await res.json();
+        chatBox.innerHTML += `<div class="bg-[#1A1A22] p-3 rounded max-w-md text-gray-300 border border-[#22222A]">${data.response}</div>`;
+      } catch (e) {
+        chatBox.innerHTML += `<div class="bg-red-950 p-3 rounded max-w-md text-red-300 border border-red-900">Error connecting to AI backend.</div>`;
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    loadFiles();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
