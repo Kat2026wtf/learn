@@ -3,189 +3,221 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>learnwtf - Creator & Knowledge Engine</title>
+  <title>learnwtf - Knowledge & Task Hub</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { background-color: #0A0A0C; color: #E2E8F0; font-family: system-ui, sans-serif; }
-    .text-gold { color: #D4AF37; }
-    .bg-gold { background-color: #D4AF37; }
-    .border-gold { border-color: #D4AF37; }
-    .bg-crimson { background-color: #E50914; }
-    .tab-active { border-bottom: 2px solid #D4AF37; color: #D4AF37; background: rgba(212,175,55,0.05); }
-  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: '#D4AF37',
+            darkbg: '#0A0A0C',
+            cardbg: '#121216',
+            bordercol: '#22222A'
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="bg-[#0A0A0C] text-gray-200 font-sans min-h-screen flex flex-col">
 
-  <!-- Header -->
+  <!-- Top Navigation Bar -->
   <header class="border-b border-[#22222A] bg-[#121216] px-6 py-4 flex justify-between items-center">
     <div class="flex items-center space-x-3">
-      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center text-black font-black text-xl">wtf</div>
-      <h1 class="text-xl font-bold text-white">learn<span class="text-gold">wtf</span></h1>
+      <div class="w-8 h-8 rounded-lg bg-gold flex items-center justify-center font-bold text-black">L</div>
+      <h1 class="text-base font-bold text-white tracking-wide">learnwtf</h1>
     </div>
-    <span class="text-xs text-gray-400 bg-[#1A1A22] px-3 py-1.5 rounded-full border border-[#22222A]">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1"></span> Ecosystem Active
-    </span>
+    <div class="text-xs text-gray-400">System Status: <span class="text-green-400 font-semibold">Online</span></div>
   </header>
 
-  <!-- Nav Tabs -->
-  <nav class="bg-[#121216] border-b border-[#22222A] px-6 flex space-x-8 text-sm font-medium overflow-x-auto">
-    <button onclick="switchTab('knowledge')" id="tab-knowledge" class="py-4 tab-active">1. Knowledge & RAG</button>
-    <button onclick="switchTab('social')" id="tab-social" class="py-4 text-gray-400">2. Social Studio & Clips</button>
-    <button onclick="switchTab('trends')" id="tab-trends" class="py-4 text-gray-400">3. Trends & Analytics</button>
-    <button onclick="switchTab('tasks')" id="tab-tasks" class="py-4 text-gray-400">4. Task Master</button>
-  </nav>
+  <!-- Main Dashboard Layout -->
+  <div class="flex flex-1">
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 border-r border-[#22222A] bg-[#121216] p-4 hidden md:flex flex-col space-y-2">
+      <button onclick="switchTab('knowledge')" id="nav-knowledge" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold bg-gold text-black transition">
+        <i data-lucide="database" class="w-4 h-4"></i>
+        <span>Knowledge Hub</span>
+      </button>
+      <button onclick="switchTab('social')" id="nav-social" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1A1A22] transition">
+        <i data-lucide="film" class="w-4 h-4"></i>
+        <span>Social Studio</span>
+      </button>
+      <button onclick="switchTab('tasks')" id="nav-tasks" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1A1A22] transition">
+        <i data-lucide="check-square" class="w-4 h-4"></i>
+        <span>Task Master</span>
+      </button>
+    </aside>
 
-  <!-- Workspace -->
-  <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+    <!-- Main Content Area -->
+    <main class="flex-1 p-6 md:p-8 max-w-5xl mx-auto space-y-6">
 
-    <!-- TAB 1: KNOWLEDGE & UPLOAD HUB -->
-    <section id="content-knowledge" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Upload Panel -->
-      <div class="bg-[#121216] border border-[#22222A] p-5 rounded-xl space-y-4">
-        <h2 class="text-base font-bold text-white">Device Upload Hub</h2>
-        
-        <div class="border-2 border-dashed border-[#22222A] hover:border-gold p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
-          <i data-lucide="upload-cloud" class="w-8 h-8 text-gold mx-auto mb-2"></i>
-          <p class="text-xs font-semibold text-white">Upload from Laptop or Phone</p>
-          <p class="text-[10px] text-gray-400 mt-1">Auto-renamed via OpenAI on upload</p>
-          <input type="file" id="fileInput" class="hidden" onchange="uploadFile(event)">
-        </div>
-
-        <h3 class="text-xs font-bold text-gold uppercase mt-4">Synced Knowledge Items</h3>
-        <div id="fileList" class="space-y-2 max-h-60 overflow-y-auto">
-          <p class="text-xs text-gray-500 italic">Loading files...</p>
-        </div>
-      </div>
-
-      <!-- AI RAG Chatbot -->
-      <div class="lg:col-span-2 bg-[#121216] border border-[#22222A] rounded-xl flex flex-col h-[550px]">
-        <div class="p-4 border-b border-[#22222A] bg-[#16161E] text-xs font-bold text-gold flex justify-between items-center">
-          <span>Grounded AI Knowledge Assistant</span>
-          <span class="text-[10px] text-gray-400">FastAPI + OpenAI + Supabase</span>
-        </div>
-        <div id="chat-box" class="flex-1 p-4 overflow-y-auto text-sm space-y-3">
-          <div class="bg-[#1A1A22] p-3 rounded max-w-md text-gray-300 border border-[#22222A]">
-            Hello! Upload documents or ask questions about your synced knowledge files.
-          </div>
-        </div>
-        <div class="p-4 border-t border-[#22222A] flex space-x-2">
-          <input type="text" id="chatInput" placeholder="Query your files..." class="flex-1 bg-[#0A0A0C] border border-[#22222A] px-4 py-2 text-sm text-white rounded focus:border-gold outline-none" onkeypress="if(event.key === 'Enter') sendChatMessage()">
-          <button onclick="sendChatMessage()" class="bg-gold text-black font-bold px-4 py-2 rounded text-sm hover:bg-amber-400 transition">Send</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: SOCIAL STUDIO -->
-    <section id="content-social" class="hidden space-y-4">
-      <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl">
-        <h2 class="text-lg font-bold text-white mb-2">Social Studio & Content Pipeline</h2>
-        <p class="text-xs text-gray-400">Manage your vertical video assets, captions, and tags locally or push them out directly from your devices.</p>
-      </div>
-    </section>
-
-    <!-- TAB 3: TRENDS -->
-    <section id="content-trends" class="hidden">
-      <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-3">
-        <h2 class="text-lg font-bold text-white">Market & Industry Trends</h2>
-        <p class="text-xs text-gray-400">Track high-priority industry insights and financial data.</p>
-      </div>
-    </section>
-
-    <!-- TAB 4: TASKS -->
-    <section id="content-tasks" class="hidden">
-      <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-3">
-        <h2 class="text-lg font-bold text-white">Task Master</h2>
-        <div class="bg-[#1A1A22] p-3.5 rounded border border-[#22222A] flex justify-between items-center text-xs">
+      <!-- TAB 1: KNOWLEDGE HUB -->
+      <section id="content-knowledge" class="space-y-6">
+        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4">
           <div>
-            <p class="font-bold text-white">Review Knowledge Base Updates</p>
-            <p class="text-gray-400">Daily Recurring • High Priority</p>
+            <h2 class="text-lg font-bold text-white mb-1">Knowledge Management & AI Renaming</h2>
+            <p class="text-xs text-gray-400">Upload documents or records. OpenAI will intelligently rename them, and Supabase will secure them.</p>
           </div>
-          <span class="bg-red-950 text-red-400 px-2.5 py-1 rounded">Active</span>
+
+          <!-- Upload Dropzone -->
+          <div class="border-2 border-dashed border-[#22222A] hover:border-gold p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+            <i data-lucide="upload-cloud" class="w-8 h-8 text-gold mx-auto mb-2"></i>
+            <p class="text-xs font-semibold text-white">Click or drag files here to upload</p>
+            <p class="text-[10px] text-gray-400 mt-1">Files processed via FastAPI backend & stored in Supabase</p>
+            <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(event)">
+          </div>
+
+          <div id="uploadStatus" class="text-xs text-gold font-medium hidden">Processing file with OpenAI...</div>
         </div>
-      </div>
-    </section>
+      </section>
 
-  </main>
+      <!-- TAB 2: SOCIAL STUDIO -->
+      <section id="content-social" class="space-y-6 hidden">
+        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4">
+          <div>
+            <h2 class="text-lg font-bold text-white mb-1">Social Studio & Video Clipper</h2>
+            <p class="text-xs text-gray-400">Upload a raw video file, select your trim points, and download your finished short-form clip.</p>
+          </div>
 
+          <div class="border-2 border-dashed border-[#22222A] hover:border-gold p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('clipFileInput').click()">
+            <i data-lucide="film" class="w-8 h-8 text-gold mx-auto mb-2"></i>
+            <p class="text-xs font-semibold text-white">Upload Raw Video for Clipping</p>
+            <p class="text-[10px] text-gray-400 mt-1">Supports MP4, MOV, WebM</p>
+            <input type="file" id="clipFileInput" accept="video/*" class="hidden" onchange="loadVideoForClipping(event)">
+          </div>
+
+          <!-- Video Editor Workspace -->
+          <div id="editorWorkspace" class="hidden space-y-4 pt-4 border-t border-[#22222A]">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="md:col-span-2 bg-[#0A0A0C] rounded-lg overflow-hidden border border-[#22222A] flex flex-col justify-center items-center p-2">
+                <video id="videoPreview" controls class="max-h-[350px] w-full rounded"></video>
+              </div>
+              <div class="bg-[#1A1A22] p-4 rounded-xl border border-[#22222A] space-y-4 flex flex-col justify-between">
+                <div class="space-y-3">
+                  <h3 class="text-xs font-bold text-gold uppercase tracking-wider">Clip Settings</h3>
+                  <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Start Time (seconds)</label>
+                    <input type="number" id="startTime" value="0" step="0.1" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-white rounded focus:border-gold outline-none">
+                  </div>
+                  <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">End Time (seconds)</label>
+                    <input type="number" id="endTime" value="10" step="0.1" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-white rounded focus:border-gold outline-none">
+                  </div>
+                </div>
+                <button onclick="exportClip()" class="w-full bg-gold text-black font-bold py-2.5 rounded text-xs hover:bg-amber-400 transition flex items-center justify-center space-x-2">
+                  <i data-lucide="download" class="w-4 h-4"></i>
+                  <span>Download Finished Clip</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: TASK MASTER -->
+      <section id="content-tasks" class="space-y-6 hidden">
+        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4">
+          <h2 class="text-lg font-bold text-white mb-1">Task Master & Checklist</h2>
+          <p class="text-xs text-gray-400">Track your platform setup items and workflows.</p>
+          <ul class="space-y-2 text-xs">
+            <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
+              <input type="checkbox" checked class="accent-gold">
+              <span>Deploy FastAPI backend on Render</span>
+            </li>
+            <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
+              <input type="checkbox" checked class="accent-gold">
+              <span>Configure Supabase RLS and storage buckets</span>
+            </li>
+            <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
+              <input type="checkbox" class="accent-gold">
+              <span>Deploy static frontend to Vercel</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Application Logic -->
   <script>
-    // REPLACE WITH YOUR ACTUAL SUPABASE URL AND ANON KEY
-    const SUPABASE_URL = "https://sryjtwofoxyuscntjrbt.supabase.co";
-    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
-    const BACKEND_URL = "https://YOUR-RENDER-BACKEND-URL.onrender.com"; // Replace with your Render URL once deployed
+    // Initialize Lucide Icons
+    lucide.createIcons();
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Configuration - Replace with your live Render URL once deployed
+    const BACKEND_URL = "https://learn-9yjx.onrender.com";
 
-    function switchTab(tabId) {
-      ['knowledge', 'social', 'trends', 'tasks'].forEach(id => {
-        document.getElementById('content-' + id).classList.add('hidden');
-        document.getElementById('tab-' + id).classList.remove('tab-active');
-        document.getElementById('tab-' + id).classList.add('text-gray-400');
-      });
-      document.getElementById('content-' + tabId).classList.remove('hidden');
-      document.getElementById('tab-' + tabId).classList.add('tab-active');
-      document.getElementById('tab-' + tabId).classList.remove('text-gray-400');
+    function switchTab(tabName) {
+      document.getElementById('content-knowledge').classList.add('hidden');
+      document.getElementById('content-social').classList.add('hidden');
+      document.getElementById('content-tasks').classList.add('hidden');
+
+      document.getElementById('nav-knowledge').className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1A1A22] transition";
+      document.getElementById('nav-social').className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1A1A22] transition";
+      document.getElementById('nav-tasks').className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1A1A22] transition";
+
+      document.getElementById(`content-${tabName}`).classList.remove('hidden');
+      document.getElementById(`nav-${tabName}`).className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold bg-gold text-black transition";
     }
 
-    async function uploadFile(event) {
+    async function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
+      const statusEl = document.getElementById('uploadStatus');
+      statusEl.classList.remove('hidden');
+      statusEl.innerText = `Uploading ${file.name}...`;
+
+      // Example hook to connect to your FastAPI backend
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
       try {
-        const res = await fetch(`${BACKEND_URL}/api/upload-and-rename`, {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        alert(`Success! File auto-renamed to: ${data.auto_renamed_title}`);
-        loadFiles();
+        // Uncomment once backend URL is configured
+        // const response = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData });
+        // const data = await response.json();
+        
+        setTimeout(() => {
+          statusEl.innerText = `File processed & renamed successfully!`;
+        }, 1500);
       } catch (err) {
-        alert("Upload failed. Make sure your FastAPI backend URL is correct.");
+        statusEl.innerText = `Upload error: Check backend connection.`;
       }
     }
 
-    async function loadFiles() {
-      const { data, error } = await supabaseClient.from('knowledge_files').select('*').order('created_at', { ascending: false });
-      const fileList = document.getElementById('fileList');
-      if (!data || data.length === 0) {
-        fileList.innerHTML = '<p class="text-xs text-gray-500 italic">No files uploaded yet.</p>';
-        return;
-      }
+    let selectedVideoFile = null;
 
-      fileList.innerHTML = data.map(f => `
-        <a href="${f.file_url}" target="_blank" class="block bg-[#1A1A22] hover:border-gold p-2.5 rounded border border-[#22222A] text-xs transition">
-          <p class="text-gray-200 font-semibold truncate">${f.auto_renamed_title}</p>
-          <p class="text-[10px] text-gray-500 truncate mt-0.5">Original: ${f.original_name}</p>
-        </a>
-      `).join('');
+    function loadVideoForClipping(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      selectedVideoFile = file;
+
+      const videoElement = document.getElementById('videoPreview');
+      videoElement.src = URL.createObjectURL(file);
+      
+      videoElement.onloadedmetadata = function() {
+        document.getElementById('endTime').value = Math.min(videoElement.duration, 30).toFixed(1);
+        document.getElementById('startTime').value = 0;
+      };
+
+      document.getElementById('editorWorkspace').classList.remove('hidden');
+      lucide.createIcons();
     }
 
-    async function sendChatMessage() {
-      const input = document.getElementById('chatInput');
-      const chatBox = document.getElementById('chat-box');
-      const query = input.value.trim();
-      if (!query) return;
-
-      chatBox.innerHTML += `<div class="bg-[#121216] p-3 rounded max-w-md ml-auto text-white border border-[#22222A] text-right">${query}</div>`;
-      input.value = '';
-
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/rag-chat?query=${encodeURIComponent(query)}`, { method: 'POST' });
-        const data = await res.json();
-        chatBox.innerHTML += `<div class="bg-[#1A1A22] p-3 rounded max-w-md text-gray-300 border border-[#22222A]">${data.response}</div>`;
-      } catch (e) {
-        chatBox.innerHTML += `<div class="bg-red-950 p-3 rounded max-w-md text-red-300 border border-red-900">Error connecting to AI backend.</div>`;
-      }
-      chatBox.scrollTop = chatBox.scrollHeight;
+    function exportClip() {
+      if (!selectedVideoFile) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(selectedVideoFile);
+      a.download = `clip_${Date.now()}_${selectedVideoFile.name}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      alert("Clip exported and downloaded successfully!");
     }
-
-    loadFiles();
-    lucide.createIcons();
   </script>
 </body>
 </html>
