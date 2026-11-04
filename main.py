@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import openai
 import os
+import json
 
 app = FastAPI()
 
@@ -20,6 +21,7 @@ async def analyze_video(file: UploadFile = File(...)):
     Transcribes uploaded video audio via OpenAI Whisper, identifies top 15-30s viral clips,
     and returns matching captions, hooks, and hashtags based on actual video transcript.
     """
+    temp_path = f"temp_{file.filename}"
     try:
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -27,10 +29,10 @@ async def analyze_video(file: UploadFile = File(...)):
 
         client = openai.OpenAI(api_key=api_key)
 
-        # Save temporary video file for Whisper processing
-        temp_path = f"temp_{file.filename}"
+        # Save temporary video file safely
+        contents = await file.read()
         with open(temp_path, "wb") as buffer:
-            buffer.write(await file.read())
+            buffer.write(contents)
 
         # 1. Transcribe actual audio via OpenAI Whisper with timestamp segments
         with open(temp_path, "rb") as audio_file:
@@ -41,11 +43,10 @@ async def analyze_video(file: UploadFile = File(...)):
                 timestamp_granularities=["segment"]
             )
 
-        # Clean up temp file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
         transcript_text = getattr(transcript_response, "text", str(transcript_response))
+        
+        if not transcript_text or len(transcript_text.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Audio transcription came back empty. Ensure the video has sound.")
 
         # 2. Prompt GPT-4o to analyze transcript & return JSON with 3 distinct 15-30s clip options
         prompt = f"""
@@ -57,7 +58,7 @@ async def analyze_video(file: UploadFile = File(...)):
         - "title": Short descriptive title (e.g., "Option A: The Core Strategy")
         - "duration": String duration (e.g., "24s")
         - "score": Virality score percentage (e.g., "96% Virality")
-        - "start": start time in seconds (number)
+        - "start": start time in seconds (number, based on transcript segment timings if possible, or 0-indexed estimates)
         - "end": end time in seconds (number)
         - "caption": Engaging social media caption matching the exact topic discussed in this segment
         - "hashtags": An object with keys "broad", "niche", and "growth" containing tailored hashtag strings
@@ -70,7 +71,17 @@ async def analyze_video(file: UploadFile = File(...)):
             response_format={"type": "json_object"}
         )
 
-        return response.choices[0].message.content
+        raw_content = response.choices[0].message.content
+        
+        # Safely parse JSON to ensure it returns clean structured JSON object to frontend
+        parsed_json = json.loads(raw_content)
+        return parsed_json
 
     except Exception as e:
+        print(f"Error processing video: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+        
+    finally:
+        # Always cleanup temp file even if errors happen
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
