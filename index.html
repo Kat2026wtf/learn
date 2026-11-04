@@ -66,19 +66,19 @@
         <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4 shadow-xl">
           <div>
             <h2 class="text-lg font-bold text-white mb-1">AI Video Clipper & Multi-Platform Publisher</h2>
-            <p class="text-xs text-gray-400">Upload long-form video (supports Apple .mov & MP4) to automatically extract high-virality 15-30s segments with burned-in captions.</p>
+            <p class="text-xs text-gray-400">Upload long-form video (supports Apple .mov & MP4) to extract high-virality 15-30s segments with burned captions.</p>
           </div>
 
           <div class="border-2 border-dashed border-[#22222A] hover:border-crimsonred p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('clipFileInput').click()">
             <i data-lucide="video" class="w-8 h-8 text-crimsonred mx-auto mb-2"></i>
             <p class="text-xs font-semibold text-white">Upload Raw Video File (MOV, MP4, WebM)</p>
-            <p class="text-[10px] text-gray-400 mt-1">Automatic FFmpeg normalization, Whisper transcription & GPT-4o viral analysis</p>
+            <p class="text-[10px] text-gray-400 mt-1">Fast audio extraction, Whisper transcription & GPT-4o viral analysis</p>
             <input type="file" id="clipFileInput" accept="video/*" class="hidden" onchange="processVideoForSocial(event)">
           </div>
 
           <div id="clipperStatus" class="hidden p-3 bg-[#1A1A22] border border-[#22222A] rounded-lg text-xs text-gold flex items-center space-x-2">
             <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-            <span id="statusText">Analyzing video transcripts & extracting viral peaks...</span>
+            <span id="statusText">Extracting audio & transcribing via Whisper...</span>
           </div>
 
           <div id="socialWorkspace" class="hidden space-y-6 pt-4 border-t border-[#22222A]">
@@ -91,7 +91,7 @@
               <div class="bg-[#0A0A0C] border border-[#22222A] p-4 rounded-xl flex flex-col items-center justify-center">
                 <p class="text-[10px] text-gray-400 mb-2 uppercase font-bold tracking-wider">Snipped 9:16 Vertical Preview</p>
                 <div class="relative w-[216px] h-[384px] bg-black rounded-lg overflow-hidden border-2 border-gold flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-                  <video id="socialPreviewVideo" controls class="w-full h-full object-cover"></video>
+                  <video id="socialPreviewVideo" controls playsinline class="w-full h-full object-cover"></video>
                 </div>
               </div>
 
@@ -140,7 +140,7 @@
           <ul class="space-y-2 text-xs">
             <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
               <input type="checkbox" checked class="accent-crimsonred">
-              <span>FastAPI backend configured with FFmpeg MOV normalization & subtitle burn-in</span>
+              <span>FastAPI backend optimized for fast audio extraction & subtitle burn-in</span>
             </li>
           </ul>
         </div>
@@ -181,7 +181,7 @@
       const workspace = document.getElementById('socialWorkspace');
 
       statusBox.classList.remove('hidden');
-      statusText.innerText = "Transcribing & analyzing high-virality peaks via Whisper & GPT-4o...";
+      statusText.innerText = "Step 1/2: Extracting audio & finding viral peaks via Whisper & GPT-4o...";
 
       const formData = new FormData();
       formData.append("file", file);
@@ -247,7 +247,7 @@
       const statusText = document.getElementById('statusText');
       const clipperStatus = document.getElementById('clipperStatus');
       clipperStatus.classList.remove('hidden');
-      statusText.innerText = `Snipping 15-30s viral segment & burning subtitles via FFmpeg...`;
+      statusText.innerText = `Step 2/2: Snipping 9:16 segment & burning subtitles via FFmpeg...`;
 
       const formData = new FormData();
       formData.append("file", rawVideoFile);
@@ -276,11 +276,11 @@
 
         const videoElement = document.getElementById('socialPreviewVideo');
         videoElement.pause();
-        videoElement.removeAttribute('src');
-        videoElement.load();
-        
         videoElement.src = currentSnippedBlobUrl;
         videoElement.load();
+        
+        // Attempt autoplay preview playback
+        videoElement.play().catch(() => console.log("Autoplay paused by browser policy. Click play to listen."));
 
         clipperStatus.classList.add('hidden');
       } catch (err) {
@@ -298,8 +298,10 @@
     }
 
     function downloadSnippedClip() {
-      if (!currentSnippedBlobUrl) return;
-      const clip = detectedClips[selectedClipIndex];
+      if (!currentSnippedBlobUrl) {
+        alert("Please wait for clip preview to finish processing before downloading.");
+        return;
+      }
       const platform = document.getElementById('platformSelect').value;
       const a = document.createElement('a');
       a.href = currentSnippedBlobUrl;
