@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import openai
 import os
@@ -55,12 +55,12 @@ async def analyze_video(file: UploadFile = File(...)):
 
         contents = await file.read()
         if len(contents) == 0:
-            raise HTTPException(status_code=400, detail="Uploaded video file is empty.")
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
             
         with open(input_path, "wb") as f:
             f.write(contents)
 
-        # 1. SPEED OPTIMIZATION: Extract lightweight audio for Whisper instead of uploading full video
+        # Extract audio for lightning-fast Whisper transcription
         extract_audio_cmd = [
             "ffmpeg", "-i", input_path,
             "-vn", "-ar", "16000", "-ac", "1", "-b:a", "64k",
@@ -68,7 +68,6 @@ async def analyze_video(file: UploadFile = File(...)):
         ]
         subprocess.run(extract_audio_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # 2. Fast Whisper Transcription on tiny MP3 file
         with open(audio_path, "rb") as audio_file:
             transcript_response = client.audio.transcriptions.create(
                 model="whisper-1",
@@ -80,26 +79,22 @@ async def analyze_video(file: UploadFile = File(...)):
         segments = getattr(transcript_response, "segments", [])
 
         if not transcript_text or not transcript_text.strip():
-            raise HTTPException(status_code=400, detail="Transcription came back empty. Ensure your video has audible speech.")
+            raise HTTPException(status_code=400, detail="Transcription came back empty.")
 
-        # 3. GPT-4o Viral Peak Analysis
         prompt = f"""
-        You are an expert social media growth hacker. Analyze this full video transcript and identify the 3 HIGHEST VIRALITY moments (hooks, surprising statements, or breakthroughs).
-
+        You are an expert social media growth hacker. Analyze this transcript and identify the 3 HIGHEST VIRALITY moments.
         Transcript: "{transcript_text}"
-
         CRITICAL RULES:
-        1. Each identified clip MUST have a duration between 15 and 30 seconds (15 <= (end - start) <= 30).
+        1. Each identified clip MUST have a duration between 15 and 30 seconds.
         2. Provide exact "start" and "end" timestamps in seconds.
-
         Return a valid JSON object with a key "clips" containing an array of exactly 3 objects:
         - "title": Short viral hook title
         - "duration": String duration (e.g., "24s")
         - "score": Virality score percentage (e.g., "97% Virality")
         - "start": start time in seconds (number)
         - "end": end time in seconds (number)
-        - "caption": Engaging caption/hook matching this specific clip window
-        - "hashtags": An object with keys "broad", "niche", and "growth" containing tailored hashtags
+        - "caption": Engaging social media caption
+        - "hashtags": An object with keys "broad", "niche", and "growth"
         """
 
         response = client.chat.completions.create(
@@ -109,7 +104,7 @@ async def analyze_video(file: UploadFile = File(...)):
         )
 
         parsed_data = json.loads(response.choices[0].message.content)
-        parsed_data["segments"] = segments  # Save segments to frontend to prevent duplicate Whisper calls
+        parsed_data["segments"] = segments
         return parsed_data
 
     finally:
@@ -154,7 +149,7 @@ async def export_clip(
 
         duration = max(5.0, min(30.0, end - start))
 
-        # Optimized FFmpeg Command: Direct trim, fast 720x1280 9:16 scale, ultrafast burn-in
+        # Fast FFmpeg vertical crop and subtitle burn-in
         ffmpeg_cmd = [
             "ffmpeg", "-ss", str(start), "-i", input_path, "-t", str(duration),
             "-vf", f"scale=720:1280:force_original_aspect_ratio=increase,crop=720:1280,subtitles={srt_path}:force_style='FontSize=22,PrimaryColour=&H00FFFF&,OutlineColour=&H000000&,BorderStyle=3'",
@@ -163,12 +158,10 @@ async def export_clip(
         ]
         subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        with open(output_path, "rb") as f:
-            video_bytes = f.read()
-
-        return JSONResponse(
-            content={"status": "success", "clip_duration": duration, "size": len(video_bytes)},
-            headers={"Access-Control-Allow-Origin": "*"}
+        return FileResponse(
+            output_path,
+            media_type="video/mp4",
+            filename=f"viral_clip_{int(start)}_{int(end)}.mp4"
         )
 
     except Exception as e:
@@ -179,6 +172,3 @@ async def export_clip(
             content={"detail": str(e), "trace": error_detail},
             headers={"Access-Control-Allow-Origin": "*"}
         )
-    finally:
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir, ignore_errors=True)
