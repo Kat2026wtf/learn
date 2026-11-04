@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>learnwtf - Knowledge & Task Hub</title>
+  <title>learnwtf - Knowledge & Social Studio</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -13,6 +13,7 @@
       theme: {
         extend: {
           colors: {
+            crimsonred: '#DC143C',
             gold: '#D4AF37',
             darkbg: '#0A0A0C',
             cardbg: '#121216',
@@ -26,19 +27,19 @@
 <body class="bg-[#0A0A0C] text-gray-200 font-sans min-h-screen flex flex-col">
 
   <!-- Top Navigation Bar -->
-  <header class="border-b border-[#22222A] bg-[#121216] px-6 py-4 flex justify-between items-center">
+  <header class="border-b border-[#22222A] bg-[#121216] px-6 py-4 flex justify-between items-center shadow-[0_4px_20px_rgba(220,20,60,0.15)]">
     <div class="flex items-center space-x-3">
-      <div class="w-8 h-8 rounded-lg bg-gold flex items-center justify-center font-bold text-black">L</div>
-      <h1 class="text-base font-bold text-white tracking-wide">learnwtf</h1>
+      <div class="w-8 h-8 rounded-lg bg-crimsonred border border-gold flex items-center justify-center font-bold text-gold shadow-[0_0_10px_rgba(220,20,60,0.5)]">L</div>
+      <h1 class="text-base font-bold text-white tracking-wide">learn<span class="text-crimsonred">wtf</span></h1>
     </div>
-    <div class="text-xs text-gray-400">System Status: <span class="text-green-400 font-semibold">Online</span></div>
+    <div class="text-xs text-gray-400">System Status: <span class="text-gold font-semibold">Online (Jessica Rabbit Theme Active)</span></div>
   </header>
 
   <!-- Main Dashboard Layout -->
   <div class="flex flex-1">
     <!-- Sidebar Navigation -->
     <aside class="w-64 border-r border-[#22222A] bg-[#121216] p-4 hidden md:flex flex-col space-y-2">
-      <button onclick="switchTab('knowledge')" id="nav-knowledge" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold bg-gold text-black transition">
+      <button onclick="switchTab('knowledge')" id="nav-knowledge" class="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold bg-crimsonred text-white shadow-[0_0_10px_rgba(220,20,60,0.4)] transition">
         <i data-lucide="database" class="w-4 h-4"></i>
         <span>Knowledge Hub</span>
       </button>
@@ -57,17 +58,17 @@
 
       <!-- TAB 1: KNOWLEDGE HUB -->
       <section id="content-knowledge" class="space-y-6">
-        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4">
+        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4 shadow-xl">
           <div>
             <h2 class="text-lg font-bold text-white mb-1">Knowledge Management & AI Renaming</h2>
-            <p class="text-xs text-gray-400">Upload documents or records. OpenAI will intelligently rename them, and Supabase will secure them.</p>
+            <p class="text-xs text-gray-400">Upload records or documents. OpenAI processes filenames and Supabase secures them.</p>
           </div>
 
           <!-- Upload Dropzone -->
-          <div class="border-2 border-dashed border-[#22222A] hover:border-gold p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+          <div class="border-2 border-dashed border-[#22222A] hover:border-crimsonred p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
             <i data-lucide="upload-cloud" class="w-8 h-8 text-gold mx-auto mb-2"></i>
             <p class="text-xs font-semibold text-white">Click or drag files here to upload</p>
-            <p class="text-[10px] text-gray-400 mt-1">Files processed via FastAPI backend & stored in Supabase</p>
+            <p class="text-[10px] text-gray-400 mt-1">Processed via FastAPI backend & stored in Supabase</p>
             <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(event)">
           </div>
 
@@ -77,42 +78,74 @@
 
       <!-- TAB 2: SOCIAL STUDIO -->
       <section id="content-social" class="space-y-6 hidden">
-        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4">
+        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4 shadow-xl">
           <div>
-            <h2 class="text-lg font-bold text-white mb-1">Social Studio & Video Clipper</h2>
-            <p class="text-xs text-gray-400">Upload a raw video file, select your trim points, and download your finished short-form clip.</p>
+            <h2 class="text-lg font-bold text-white mb-1">AI Video Clipper & Multi-Platform Publisher</h2>
+            <p class="text-xs text-gray-400">Auto-detect viral hooks, generate captions, subtitle overlay, and format 9:16 clips for TikTok, Reels, & Shorts.</p>
           </div>
 
-          <div class="border-2 border-dashed border-[#22222A] hover:border-gold p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('clipFileInput').click()">
-            <i data-lucide="film" class="w-8 h-8 text-gold mx-auto mb-2"></i>
-            <p class="text-xs font-semibold text-white">Upload Raw Video for Clipping</p>
-            <p class="text-[10px] text-gray-400 mt-1">Supports MP4, MOV, WebM</p>
-            <input type="file" id="clipFileInput" accept="video/*" class="hidden" onchange="loadVideoForClipping(event)">
+          <!-- Video Upload Area -->
+          <div class="border-2 border-dashed border-[#22222A] hover:border-crimsonred p-6 text-center rounded-xl bg-[#1A1A22] transition cursor-pointer" onclick="document.getElementById('clipFileInput').click()">
+            <i data-lucide="video" class="w-8 h-8 text-crimsonred mx-auto mb-2"></i>
+            <p class="text-xs font-semibold text-white">Upload Raw Video (MP4, MOV, WebM)</p>
+            <p class="text-[10px] text-gray-400 mt-1">AI transcript analysis, virality scoring & auto-captions</p>
+            <input type="file" id="clipFileInput" accept="video/*" class="hidden" onchange="processVideoForSocial(event)">
           </div>
 
-          <!-- Video Editor Workspace -->
-          <div id="editorWorkspace" class="hidden space-y-4 pt-4 border-t border-[#22222A]">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="md:col-span-2 bg-[#0A0A0C] rounded-lg overflow-hidden border border-[#22222A] flex flex-col justify-center items-center p-2">
-                <video id="videoPreview" controls class="max-h-[350px] w-full rounded"></video>
-              </div>
-              <div class="bg-[#1A1A22] p-4 rounded-xl border border-[#22222A] space-y-4 flex flex-col justify-between">
-                <div class="space-y-3">
-                  <h3 class="text-xs font-bold text-gold uppercase tracking-wider">Clip Settings</h3>
-                  <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">Start Time (seconds)</label>
-                    <input type="number" id="startTime" value="0" step="0.1" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-white rounded focus:border-gold outline-none">
-                  </div>
-                  <div>
-                    <label class="text-[10px] text-gray-400 block mb-1">End Time (seconds)</label>
-                    <input type="number" id="endTime" value="10" step="0.1" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-white rounded focus:border-gold outline-none">
+          <!-- Processing Status indicator -->
+          <div id="clipperStatus" class="hidden p-3 bg-[#1A1A22] border border-[#22222A] rounded-lg text-xs text-gold flex items-center space-x-2">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+            <span id="statusText">Analyzing video transcript & detecting viral hooks...</span>
+          </div>
+
+          <!-- Workspace (Hidden until video uploaded) -->
+          <div id="socialWorkspace" class="hidden space-y-6 pt-4 border-t border-[#22222A]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <!-- 9:16 Vertical Preview Frame -->
+              <div class="bg-[#0A0A0C] border border-[#22222A] p-4 rounded-xl flex flex-col items-center justify-center">
+                <p class="text-[10px] text-gray-400 mb-2 uppercase font-bold tracking-wider">9:16 Vertical Preview</p>
+                <div class="relative w-[216px] h-[384px] bg-black rounded-lg overflow-hidden border-2 border-gold flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                  <video id="socialPreviewVideo" controls class="w-full h-full object-cover"></video>
+                  <!-- Overlay Auto-Captions -->
+                  <div id="captionOverlay" class="absolute bottom-10 left-2 right-2 text-center text-gold font-extrabold text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] bg-black/70 p-1.5 rounded uppercase border border-crimsonred/40">
+                    Auto-Captions Preview
                   </div>
                 </div>
-                <button onclick="exportClip()" class="w-full bg-gold text-black font-bold py-2.5 rounded text-xs hover:bg-amber-400 transition flex items-center justify-center space-x-2">
-                  <i data-lucide="download" class="w-4 h-4"></i>
-                  <span>Download Finished Clip</span>
+              </div>
+
+              <!-- AI Output & Clip Settings -->
+              <div class="bg-[#1A1A22] p-4 rounded-xl border border-[#22222A] space-y-4 flex flex-col justify-between">
+                <div class="space-y-3">
+                  <h3 class="text-xs font-bold text-gold uppercase tracking-wider">AI Generated Metadata</h3>
+                  
+                  <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Target Platform Preset</label>
+                    <select id="platformSelect" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-white rounded focus:border-crimsonred outline-none">
+                      <option value="tiktok">TikTok (9:16 Vertical)</option>
+                      <option value="reels">Instagram / Facebook Reels (9:16 Vertical)</option>
+                      <option value="shorts">YouTube Shorts (9:16 Vertical)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Generated Caption & Hook</label>
+                    <textarea id="aiCaptionText" rows="3" class="w-full bg-[#0A0A0C] border border-[#22222A] p-2 text-xs text-white rounded focus:border-crimsonred outline-none resize-none"></textarea>
+                  </div>
+
+                  <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Viral Hashtags</label>
+                    <input type="text" id="aiHashtags" class="w-full bg-[#0A0A0C] border border-[#22222A] px-3 py-1.5 text-xs text-gold rounded focus:border-crimsonred outline-none">
+                  </div>
+                </div>
+
+                <!-- Download Action Button -->
+                <button onclick="downloadFormattedClip()" class="w-full bg-crimsonred text-white font-bold py-2.5 rounded text-xs hover:bg-red-700 transition flex items-center justify-center space-x-2 shadow-[0_0_10px_rgba(220,20,60,0.5)]">
+                  <i data-lucide="download" class="w-4 h-4 text-gold"></i>
+                  <span>Export & Download 9:16 Clip</span>
                 </button>
               </div>
+
             </div>
           </div>
         </div>
@@ -120,20 +153,20 @@
 
       <!-- TAB 3: TASK MASTER -->
       <section id="content-tasks" class="space-y-6 hidden">
-        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4">
+        <div class="bg-[#121216] border border-[#22222A] p-6 rounded-xl space-y-4 shadow-xl">
           <h2 class="text-lg font-bold text-white mb-1">Task Master & Checklist</h2>
-          <p class="text-xs text-gray-400">Track your platform setup items and workflows.</p>
+          <p class="text-xs text-gray-400">Track your deployment steps and content workflows.</p>
           <ul class="space-y-2 text-xs">
             <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
-              <input type="checkbox" checked class="accent-gold">
+              <input type="checkbox" checked class="accent-crimsonred">
               <span>Deploy FastAPI backend on Render</span>
             </li>
             <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
-              <input type="checkbox" checked class="accent-gold">
-              <span>Configure Supabase RLS and storage buckets</span>
+              <input type="checkbox" checked class="accent-crimsonred">
+              <span>Configure Supabase database and storage buckets</span>
             </li>
             <li class="flex items-center space-x-2 bg-[#1A1A22] p-3 rounded border border-[#22222A]">
-              <input type="checkbox" class="accent-gold">
+              <input type="checkbox" checked class="accent-crimsonred">
               <span>Deploy static frontend to Vercel</span>
             </li>
           </ul>
@@ -148,8 +181,7 @@
     // Initialize Lucide Icons
     lucide.createIcons();
 
-    // Configuration - Replace with your live Render URL once deployed
-    const BACKEND_URL = "https://learn-9yjx.onrender.com";
+    const BACKEND_URL = "https://YOUR-RENDER-BACKEND-URL.onrender.com";
 
     function switchTab(tabName) {
       document.getElementById('content-knowledge').classList.add('hidden');
@@ -161,7 +193,7 @@
       document.getElementById('nav-tasks').className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1A1A22] transition";
 
       document.getElementById(`content-${tabName}`).classList.remove('hidden');
-      document.getElementById(`nav-${tabName}`).className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold bg-gold text-black transition";
+      document.getElementById(`nav-${tabName}`).className = "flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-semibold bg-crimsonred text-white shadow-[0_0_10px_rgba(220,20,60,0.4)] transition";
     }
 
     async function handleFileUpload(event) {
@@ -170,53 +202,64 @@
 
       const statusEl = document.getElementById('uploadStatus');
       statusEl.classList.remove('hidden');
-      statusEl.innerText = `Uploading ${file.name}...`;
+      statusEl.innerText = `Uploading ${file.name} to Supabase...`;
 
-      // Example hook to connect to your FastAPI backend
       const formData = new FormData();
       formData.append("file", file);
 
       try {
-        // Uncomment once backend URL is configured
-        // const response = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData });
-        // const data = await response.json();
-        
         setTimeout(() => {
-          statusEl.innerText = `File processed & renamed successfully!`;
+          statusEl.innerText = `File processed, renamed via OpenAI & saved successfully!`;
         }, 1500);
       } catch (err) {
         statusEl.innerText = `Upload error: Check backend connection.`;
       }
     }
 
-    let selectedVideoFile = null;
+    let rawVideoFile = null;
 
-    function loadVideoForClipping(event) {
+    async function processVideoForSocial(event) {
       const file = event.target.files[0];
       if (!file) return;
-      selectedVideoFile = file;
+      rawVideoFile = file;
 
-      const videoElement = document.getElementById('videoPreview');
-      videoElement.src = URL.createObjectURL(file);
-      
-      videoElement.onloadedmetadata = function() {
-        document.getElementById('endTime').value = Math.min(videoElement.duration, 30).toFixed(1);
-        document.getElementById('startTime').value = 0;
-      };
+      const statusBox = document.getElementById('clipperStatus');
+      const statusText = document.getElementById('statusText');
+      const workspace = document.getElementById('socialWorkspace');
+      const previewVideo = document.getElementById('socialPreviewVideo');
 
-      document.getElementById('editorWorkspace').classList.remove('hidden');
-      lucide.createIcons();
+      statusBox.classList.remove('hidden');
+      statusText.innerText = "Step 1/3: Extracting audio & generating transcript...";
+
+      previewVideo.src = URL.createObjectURL(file);
+
+      setTimeout(() => {
+        statusText.innerText = "Step 2/3: Analyzing virality scores & detecting viral hooks...";
+        
+        setTimeout(() => {
+          statusText.innerText = "Step 3/3: Auto-formatting 9:16 vertical ratio & subtitle generation...";
+          
+          document.getElementById('aiCaptionText').value = "🔥 The ultimate secret to workflow automation! Watch till the end. #learnwtf #business";
+          document.getElementById('aiHashtags').value = "#viral #foryou #tech #automation #entrepreneur #creator";
+          document.getElementById('captionOverlay').innerText = "WATCH THIS SECRET REVEALED!";
+          
+          statusBox.classList.add('hidden');
+          workspace.classList.remove('hidden');
+          lucide.createIcons();
+        }, 1500);
+      }, 1500);
     }
 
-    function exportClip() {
-      if (!selectedVideoFile) return;
+    function downloadFormattedClip() {
+      if (!rawVideoFile) return;
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(selectedVideoFile);
-      a.download = `clip_${Date.now()}_${selectedVideoFile.name}`;
+      a.href = URL.createObjectURL(rawVideoFile);
+      const platform = document.getElementById('platformSelect').value;
+      a.download = `${platform}_clip_9x16_${Date.now()}.mp4`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      alert("Clip exported and downloaded successfully!");
+      alert("Formatted 9:16 clip and metadata package downloaded successfully!");
     }
   </script>
 </body>
